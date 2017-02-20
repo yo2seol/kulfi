@@ -9,7 +9,7 @@
 #include "proc/routes.h"
 #include "proc/stats.h"
 
-#define INTF_NAME "em2"
+#define INTF_NAME "eth1"
 
 static struct nf_hook_ops nfho_post;
 
@@ -91,17 +91,20 @@ static unsigned int post_routing_process(const struct nf_hook_ops *ops,
             //stats_entry_inc(be32_to_cpu(flow_key.dst), ip_pkt_len);
             pr_debug("Proto: IP pkt\nGetting stk from flow_table for %u\n",
                     be32_to_cpu(flow_key.dst));
-	    stk = flow_table_get(flow_table, flow_key, routing_table, be32_to_cpu(flow_key.dst));
+	        stk = flow_table_get(flow_table, flow_key, routing_table, be32_to_cpu(flow_key.dst));
 
-	    if(stk.num_tags == -1) { // no_stack
+	        if(stk.num_tags == -1) { // no_stack
                 pr_debug("flow_table miss! consulting rt_table\n");
                 stk = get_random_stack_for_dst(be32_to_cpu(flow_key.dst), routing_table);
                 flow_table_set(flow_table, flow_key, stk);
             }
 
             if(stk.num_tags < 0) {
-                stk.num_tags=0;
+                stk.num_tags = 0;
             }
+
+            // Increment num_tags for num_hops_taken
+            stk.num_tags += 1;
 
             eth_vlan_hdr_len = ETH_HLEN + stk.num_tags * sizeof(vlan_label);
             full_pkt_len = eth_vlan_hdr_len + ip_pkt_len;
@@ -150,7 +153,7 @@ static unsigned int post_routing_process(const struct nf_hook_ops *ops,
                 kfree_skb(nskb);
                 return NF_ACCEPT;
             }
-/*
+            /*
             // Reduce MTU, if needed
             if (nskb->dev->mtu > 1500 - (4 * stk.num_tags)) {
                 pr_debug("Setting MTU: (%s) %u", out->name,
@@ -159,7 +162,7 @@ static unsigned int post_routing_process(const struct nf_hook_ops *ops,
             }
             pr_debug("mod_vlan dev_get_by_name success, nskb->dev->name='%s'",
                     nskb->dev->name);
-*/
+            */
             saddr = nskb->dev->dev_addr;
             daddr = dst;
 
