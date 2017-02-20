@@ -22,6 +22,13 @@ u_int32_t set_vlan_bits(u_int16_t label_val, bool inner_most_tag);
 /* Push one vlan tag */
 void set_vlan(struct sk_buff * skb, u_int16_t val, bool inner_most_tag);
 
+
+/* Set bits of VLAN header */
+u_int32_t set_ztn_bits(u_int16_t header_length);
+
+/* Push one ztn head */
+void set_ztn_head(struct sk_buff * skb, u_int16_t header_length);
+
 /* Push a vlan stack (list of vlan tags) */
 bool set_vlan_stack_static(struct sk_buff * skb, u_int16_t *tags, int stk_len);
 
