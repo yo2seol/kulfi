@@ -57,12 +57,13 @@ void set_ztn_head(struct sk_buff * skb, u_int16_t header_length) {
 bool set_vlan_stack_static(struct sk_buff *skb, u_int16_t *tags, int stk_len){
     bool inner_most_tag = true;
     bool pushed = false;
+    u_int16_t total_len;
     if (tags == NULL) {
         pr_debug("set_vlan_stack_static: Empty tags! stk_len=%d\n", stk_len);
     }
     else{
-        u_int16_t total_len = stk_len - 1;
         stk_len--;
+        total_len = stk_len;
         while(stk_len-->0){
             set_vlan(skb, tags[stk_len], inner_most_tag);
             inner_most_tag = false;
