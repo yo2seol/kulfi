@@ -224,12 +224,14 @@ static unsigned int process_pkt_post_routing(const struct nf_hook_ops *ops,
     }
 
     if(skb_is_nonlinear(skb)){
+        // Linearize SKB for fragmented packets
+        if (skb_linearize(skb) != 0) {
+            pr_debug("linearize skb failed. Drop.\n");
+            return NF_DROP;
+        }
         pr_debug("Non-linear skb.\n");
-        return NF_ACCEPT;
     }
-    else{
-        err = post_routing_process(ops, skb, in, out);
-    }
+    err = post_routing_process(ops, skb, in, out);
 
     return err;
 }
