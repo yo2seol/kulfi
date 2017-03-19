@@ -15,8 +15,8 @@ SRCS=dsfield.c\
 	 kulfi_mod.c
 
 OBJS = $(SRCS:.c=.o)
-#CFLAGS_kulfi_mod.o := -DDEBUG
-#CFLAGS_routes.o := -DDEBUG
+CFLAGS_kulfi_mod.o := -DDEBUG
+CFLAGS_routes.o := -DDEBUG
 
 obj-m += modkulfi.o
 modkulfi-objs += $(OBJS) kulfi_mod.o

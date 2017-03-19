@@ -30,16 +30,16 @@ void set_vlan(struct sk_buff * skb, u_int16_t val, bool inner_most_tag) {
     (*(u_int32_t*)(vlanlabel)) = set_vlan_bits(val, inner_most_tag);
 }
 
-u_int32_t set_ztn_bits(u_int16_t header_length)
+u_int32_t set_ztn_length_bits(u_int16_t header_length)
 {
     u_int32_t result = 0;
-    result |= htons((header_length & 0x0fff)) << 16;
+    result |= htons((header_length & 0x0fff));
+    result |= htons(ETH_P_8021Q) << 16;
     return result;
 }
 
-
-/* Push a single zero_touch header */
-void set_ztn_head(struct sk_buff * skb, u_int16_t header_length) {
+/* Push a single zero_touch length */
+void set_ztn_length(struct sk_buff * skb, u_int16_t header_length) {
     struct vlan_label * vlanlabel;
     if (!skb) {
         pr_debug("mod_vlan: ERROR set_vlan skb is null.\n");
@@ -50,7 +50,31 @@ void set_ztn_head(struct sk_buff * skb, u_int16_t header_length) {
         pr_debug("mod_vlan: ERROR skb_vlan skb_push failed.\n");
         return;
     }
-    (*(u_int32_t*)(vlanlabel)) = set_ztn_bits(header_length);
+    (*(u_int32_t*)(vlanlabel)) = set_ztn_length_bits(header_length);
+}
+
+u_int32_t set_ztn_header_bits()
+{
+    u_int32_t result = 0;
+    u_int16_t protocol_type = 0x01;
+    result |= htons((protocol_type & 0x0fff));
+    result |= htons(ETH_P_8021Q) << 16;
+    return result;
+}
+
+/* Push a single zero_touch header */
+void set_ztn_head(struct sk_buff * skb) {
+    struct vlan_label * vlanlabel;
+    if (!skb) {
+        pr_debug("mod_vlan: ERROR set_vlan skb is null.\n");
+        return;
+    }
+    vlanlabel = (struct vlan_label*)skb_push(skb, sizeof(struct vlan_label));
+    if (!vlanlabel) {
+        pr_debug("mod_vlan: ERROR skb_vlan skb_push failed.\n");
+        return;
+    }
+    (*(u_int32_t*)(vlanlabel)) = set_ztn_header_bits();
 }
 
 /* Push a vlan stack (list of vlan tags) */
@@ -62,7 +86,7 @@ bool set_vlan_stack_static(struct sk_buff *skb, u_int16_t *tags, int stk_len){
         pr_debug("set_vlan_stack_static: Empty tags! stk_len=%d\n", stk_len);
     }
     else{
-        stk_len--;
+        stk_len -= 2;
         total_len = stk_len;
         while(stk_len-->0){
             set_vlan(skb, tags[stk_len], inner_most_tag);
@@ -70,7 +94,8 @@ bool set_vlan_stack_static(struct sk_buff *skb, u_int16_t *tags, int stk_len){
             pushed = true;
         }
         // Append the size
-        set_ztn_head(skb, total_len); 
+        set_ztn_length(skb, total_len); 
+        set_ztn_head(skb); 
     }
     return pushed;
 }
