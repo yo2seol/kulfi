@@ -17,10 +17,10 @@ struct vlan_label {
 };
 
 /* Set bits of VLAN header */
-u_int32_t set_vlan_bits(u_int16_t label_val, bool inner_most_tag);
+u_int32_t set_vlan_bits(u_int16_t in, u_int16_t out, bool inner_most_tag);
 
 /* Push one vlan tag */
-void set_vlan(struct sk_buff * skb, u_int16_t val, bool inner_most_tag);
+void set_vlan(struct sk_buff * skb, u_int16_t in, u_int16_t out, bool inner_most_tag);
 
 
 /* Set bits of VLAN length header */

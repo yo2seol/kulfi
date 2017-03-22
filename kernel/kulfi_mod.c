@@ -12,7 +12,7 @@
 #define INTF_NAME "eth1"
 
 static struct nf_hook_ops nfho_post;
-static struct nf_hook_ops nfho_in;
+//static struct nf_hook_ops nfho_in;
 
 static struct proc_dir_entry * routes_proc_entry;
 static struct proc_dir_entry * stats_proc_entry;
@@ -104,6 +104,7 @@ static unsigned int post_routing_process(const struct nf_hook_ops *ops,
                 stk.num_tags = 0;
             }
 
+            stk.num_tags /= 2;
             // Increment num_tags for num_hops_taken and ztn headers
             stk.num_tags += 2;
 
@@ -400,10 +401,12 @@ int init_module()
     nfho_post.pf       = AF_INET;
     nfho_post.priority = NF_IP_PRI_LAST;
 
+    /*
     nfho_in.hook     = process_pkt_pre_routing; 
     nfho_in.hooknum  = NF_INET_PRE_ROUTING;
-    nfho_in.pf       = AF_INET;
+    nfho_in.pf       = PF_INET;
     nfho_in.priority = NF_IP_PRI_FIRST;
+    */
 
     pr_debug("mod_vlan: Loading\n");
     // Create a flow_table [flow_match, vlan_stack]
@@ -417,7 +420,7 @@ int init_module()
     create_new_stats_proc_entry(stats_proc_entry);
 
     nf_register_hook(&nfho_post);
-    nf_register_hook(&nfho_in);
+    //nf_register_hook(&nfho_in);
 
     return 0;
 }
@@ -425,7 +428,7 @@ int init_module()
 /* Cleanup routine */
 void cleanup_module()
 {
-    nf_unregister_hook(&nfho_in);
+    //nf_unregister_hook(&nfho_in);
     nf_unregister_hook(&nfho_post);
 
     // delete flow_table (free copied stacks here)

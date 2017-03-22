@@ -1,10 +1,11 @@
 #include "vlan.h"
 
 /* Set bits of VLAN header */
-u_int32_t set_vlan_bits(u_int16_t label_val, bool inner_most_tag)
+u_int32_t set_vlan_bits(u_int16_t in, u_int16_t out, bool inner_most_tag)
 {
     u_int32_t result = 0;
-    result |= htons((label_val & 0x0fff));
+    u_int16_t val = ((u_int8_t) in << 8) | ((u_int8_t) out);
+    result |= htons(val & 0x0fff);
     // Shift first and then set the ether type
     if (inner_most_tag) {
         result |= htons(ETH_P_IP) << 16;
@@ -16,7 +17,7 @@ u_int32_t set_vlan_bits(u_int16_t label_val, bool inner_most_tag)
 }
 
 /* Push one vlan tag */
-void set_vlan(struct sk_buff * skb, u_int16_t val, bool inner_most_tag) {
+void set_vlan(struct sk_buff * skb, u_int16_t in, u_int16_t out, bool inner_most_tag) {
     struct vlan_label * vlanlabel;
     if (!skb) {
         pr_debug("mod_vlan: ERROR set_vlan skb is null.\n");
@@ -27,7 +28,7 @@ void set_vlan(struct sk_buff * skb, u_int16_t val, bool inner_most_tag) {
         pr_debug("mod_vlan: ERROR skb_vlan skb_push failed.\n");
         return;
     }
-    (*(u_int32_t*)(vlanlabel)) = set_vlan_bits(val, inner_most_tag);
+    (*(u_int32_t*)(vlanlabel)) = set_vlan_bits(in, out, inner_most_tag);
 }
 
 u_int32_t set_ztn_length_bits(u_int16_t header_length)
@@ -88,10 +89,12 @@ bool set_vlan_stack_static(struct sk_buff *skb, u_int16_t *tags, int stk_len){
     else{
         stk_len -= 2;
         total_len = stk_len;
-        while(stk_len-->0){
-            set_vlan(skb, tags[stk_len], inner_most_tag);
+        stk_len *= 2;
+        while(stk_len > 0){
+            set_vlan(skb, tags[stk_len - 2], tags[stk_len - 1], inner_most_tag);
             inner_most_tag = false;
             pushed = true;
+            stk_len -= 2;
         }
         // Append the size
         set_ztn_length(skb, total_len); 
