@@ -141,7 +141,6 @@ static unsigned int post_routing_process(const struct nf_hook_ops *ops,
                 kfree_skb(nskb);
                 return NF_ACCEPT;
             }
-            /*
             // Reduce MTU, if needed
             if (nskb->dev->mtu > 1500 - (4 * stk.num_tags)) {
                 pr_debug("Setting MTU: (%s) %u", out->name,
@@ -150,7 +149,6 @@ static unsigned int post_routing_process(const struct nf_hook_ops *ops,
             }
             pr_debug("mod_vlan dev_get_by_name success, nskb->dev->name='%s'",
                     nskb->dev->name);
-            */
             saddr = nskb->dev->dev_addr;
             daddr = dst;
 
