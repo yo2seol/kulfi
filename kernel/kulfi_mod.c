@@ -49,18 +49,6 @@ static unsigned int post_routing_process(const struct nf_hook_ops *ops,
     __wsum nskb_csum = 0;
     unsigned char dst[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
-    if(skb_is_nonlinear(skb)){
-        pr_debug("Non-linear skb.. linearizing...\n");
-        if(skb_linearize(skb)){
-            pr_debug("Failed to serialize!\n");
-        }
-    }
-
-    if (skb_is_nonlinear(skb)){
-        pr_debug("Proces_pkt: Still non-linear skb.\n");
-        return NF_ACCEPT;
-    }
-
     proto = ntohs(skb->protocol);
     pr_debug("Proto: %04x\n", proto);
     switch (proto) {
@@ -226,6 +214,7 @@ static unsigned int process_pkt_post_routing(
 
     if(skb_is_nonlinear(skb)){
         // Linearize SKB for fragmented packets
+        pr_debug("linearizing...");
         if (skb_linearize(skb) != 0) {
             pr_debug("linearize skb failed. Drop.\n");
             return NF_DROP;
