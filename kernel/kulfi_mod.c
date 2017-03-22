@@ -49,14 +49,12 @@ static unsigned int post_routing_process(const struct nf_hook_ops *ops,
     __wsum nskb_csum = 0;
     unsigned char dst[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
-    /*
     if(skb_is_nonlinear(skb)){
         pr_debug("Non-linear skb.. linearizing...\n");
         if(skb_linearize(skb)){
             pr_debug("Failed to serialize!\n");
         }
     }
-    */
 
     if (skb_is_nonlinear(skb)){
         pr_debug("Proces_pkt: Still non-linear skb.\n");
